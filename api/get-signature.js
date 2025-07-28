@@ -1,16 +1,22 @@
-const crypto = require("crypto");
+const ImageKit = require("imagekit");
 
-module.exports = (req, res) => {
-  const token = crypto.randomBytes(16).toString("hex");
-  const expire = Math.floor(Date.now() / 1000) + 240; // 4 minutes
-  const signature = crypto
-    .createHmac("sha1", process.env.IMAGEKIT_PRIVATE_KEY)
-    .update(token + expire)
-    .digest("hex");
+export default function handler(req, res) {
+  // Set CORS headers
+  res.setHeader("Access-Control-Allow-Origin", "*"); // or use your exact domain for better security
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  res.status(200).json({
-    token,
-    expire,
-    signature
+  if (req.method === "OPTIONS") {
+    res.status(200).end();
+    return;
+  }
+
+  const imagekit = new ImageKit({
+    publicKey: "public_W/90/QXL4CgTglxhI3BKX8s6EF0=",
+    privateKey: process.env.IMAGEKIT_PRIVATE_KEY,
+    urlEndpoint: "https://ik.imagekit.io/a16vm6m1m",
   });
-};
+
+  const result = imagekit.getAuthenticationParameters();
+  res.status(200).json(result);
+}
